@@ -8,18 +8,31 @@ herbert.fischer@gmail.com
 http://hgfischer.org 
 @hgfischer
 
+* Conteúdo
+
+Convenções de como organizar:
+
+- Ambiente
+- Projetos e seus arquivos
+- Código e nomenclaturas
+
+E também:
+
+- Build Tags
+- Gestão de dependências
+- etc
+
 
 * Ambiente Convencional
 
 A convenção oficial é manter todos os projetos e suas dependências em um único GOPATH.
 
 
-	$ export GOPATH="~/Workspace/Go"
-	$ export GOBIN="$GOPATH/bin"
-	$ export PATH="$GOBIN$PATH"
+	$ export GOPATH="~/go"
+	$ export PATH="$GOPATH/bin:$PATH"
 
 
-Utilize o comando `go env` para exibir como está a configuração do seu ambiente corrente.
+Utilize `go`env` para exibir como está a configuração do seu ambiente corrente.
 
 
 	GOARCH="amd64"
@@ -107,7 +120,7 @@ Use `pacote/doc.go` quando a documentação principal é extensa.
 Como um melhor exemplo, veja o código do `net/http`.
 
 
-* Código
+* Organizando Código
 
 - O compilador não se importa com a quantidade de arquivos de um _package_.
 - O que importa é o quanto faz sentido sua organização de arquivos.
@@ -117,6 +130,18 @@ Como separar ou organizar o código de um _package_ em diferentes arquivos:
 - Muitas constantes pré-definidas? `consts.go`
 - Muitos `error`s pré-definidos? `errors.go`
 - Separe _structs_ e suas respectivas funções em arquivos com o mesmo nome. Ex.: `net/http.Client` fica em `net/http/client.go`. E seus respectivos testes em `client_test.go`.
+
+
+* Convenções de Código
+
+- Ferramentas: `goimports`, `go`fmt`, `golint`
+- `MixedCaps` ou `mixedCaps`
+- Siglas são *siglas*: `UserID`, `siteURL`, `HTTPAddress`, `NewHTTPURL`
+- Nomes de interface como verbo, quando possível
+- _Getters_ sem _Get_ ou _get_: `user.Name()` ao invés de `user.GetName()`
+- Leia _Effective_Go_
+
+.link http://golang.org/doc/effective_go.html Effective Go
 
 
 * Código dependente de plataforma
@@ -164,9 +189,49 @@ Tags disponíveis:
 - `cgo` para quando CGO está ativado
 - Versão mínima do compilador: `go1.1`, `go1.2`, `go1.3`, `go1.4`, ...
 - `ignore` para ignorar o arquivo
-- Quais quer outras tags definidas com `go build -tags tag1,tag2,tag3`
+- Quais quer outras tags definidas com `go`build`-tags`tag1,tag2,tag3`
 
 
+* Projetos corporativos
+
+- Repositório fechado
+- Builds reproduzíveis
+- Gestão de dependências
+
+* GOPATH dedicado
+
+	cd () {
+		builtin cd "$@"
+		cdir=$PWD
+		while [ "$cdir" != "/" ]; do
+			if [ -e "$cdir/.gopath" ]; then
+				export GOPATH=$cdir
+				break
+			fi
+			cdir=$(dirname "$cdir")
+		done
+	}
+
+
+* Godep
+
+https://github.com/tools/godep
+
+* gb 
+
+http://dave.cheney.net/2015/06/09/gb-a-project-based-build-tool-for-the-go-programming-language
+
+* Internal
+
+https://docs.google.com/document/d/1e8kOo3r51b2BWtTs_1uADIA5djfXhPT36s6eHVRIvaU/edit
+
+* Vendor em go1.5
+
+https://groups.google.com/forum/#!msg/golang-dev/74zjMON9glU/4lWCRDCRZg0J
+
+* gopkg.in
+
+http://labix.org/gopkg.in
 
 
 
