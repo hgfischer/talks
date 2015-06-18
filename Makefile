@@ -1,6 +1,5 @@
 .PHONY: default
 default:
-	$(info Run `make present` to start server)
-	@exit 0
+	$(error Run `make present` to start server)
 
 include go.mk

@@ -1,0 +1,121 @@
+error == interface { Error() string }
+
+errors.New
+errors.Errorf
+
+type assertion to check error type
+
+net.Error
+
+if nerr, ok := err.(net.Error); ok && nerr.Temporary() {
+time.Sleep(1e9)
+continue
+}
+if err != nil {
+log.Fatal(err)
+}
+
+repeated "if err != nil"
+
+fazia try-catch, então é if-err
+
+errors são variáveis que podem ser programadas
+
+scanner := bufio.NewScanner(input)
+for scanner.Scan() {
+token := scanner.Text()
+// process token
+}
+if err := scanner.Err(); err != nil {
+// process the error
+}
+
+Scan() retorna boolean e Err() retorna error
+
+Poderia ser assim:
+
+scanner := bufio.NewScanner(input)
+for {
+token, err := scanner.Scan()
+if err != nil {
+return err // or maybe break
+}
+Errors are values - The Go Blog
+// process token
+}
+
+- é crítico verificar os erros assim que eles acontecem
+
+_, err = fd.Write(p0[a:b])
+if err != nil {
+return err
+}
+_, err = fd.Write(p1[c:d])
+if err != nil {
+return err
+}
+_, err = fd.Write(p2[e:f])
+if err != nil {
+return err
+}
+
+- remover repetição internamente
+
+var err error
+write := func(buf []byte) {
+if err != nil {
+return
+}
+_, err = w.Write(buf)
+}
+write(p0[a:b])
+write(p1[c:d])
+write(p2[e:f])
+// and so on
+if err != nil {
+return err
+}
+
+- precisa de um closure em cada lugar e a variável err tem que ser dedicada
+
+type errWriter struct {
+w io.Writer
+err error
+}
+
+func (ew *errWriter) write(buf []byte) {
+if ew.err != nil {
+return
+}
+_, ew.err = ew.w.Write(buf)
+}
+
+ew := &errWriter{w: fd}
+ew.write(p0[a:b])
+ew.write(p1[c:d])
+ew.write(p2[e:f])
+// and so on
+if ew.err != nil {
+return ew.err
+}
+
+- locais onde existe: archive/zip, net/http, bufio.Writer
+
+b := bufio.NewWriter(fd)
+b.Write(p0[a:b])
+b.Write(p1[c:d])
+b.Write(p2[e:f])
+// and so on
+if b.Flush() != nil {
+return b.Flush()
+}
+
+There is one significant drawback to this approach, at least for some applications: there is no way to know how much of the processing completed before the error occurred. If that information is important, a more fine­grained approach is necessary. Often, though, an all­or­nothing check at the end is sufficient.
+
+
+PanicHandler
+
+- usar http.Recorder e flagset
+
+
+

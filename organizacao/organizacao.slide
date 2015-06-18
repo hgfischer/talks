@@ -1,0 +1,198 @@
+Organização de Projetos em Go
+20 Jun 2015
+Tags: projetos, organização, go
+
+Herbert Fischer
+Senior Software Engineer, Globo.com
+herbert.fischer@gmail.com
+http://hgfischer.org 
+@hgfischer
+
+
+* Ambiente Convencional
+
+A convenção oficial é manter todos os projetos e suas dependências em um único GOPATH.
+
+
+	$ export GOPATH="~/Workspace/Go"
+	$ export GOBIN="$GOPATH/bin"
+	$ export PATH="$GOBIN$PATH"
+
+
+Utilize o comando `go env` para exibir como está a configuração do seu ambiente corrente.
+
+
+	GOARCH="amd64"
+	GOBIN="/home/herbert/Workspace/Go/bin"
+	GOGCCFLAGS="-fPIC -m64 -pthread -fmessage-length=0"
+	GOHOSTARCH="amd64"
+	GOHOSTOS="linux"
+	GOOS="linux"
+	GOPATH="/home/herbert/Workspace/Go"
+	GOROOT="/home/herbert/.go"
+	GOTOOLDIR="/home/herbert/.go/pkg/tool/linux_amd64"
+	...
+
+
+* Localização dos projetos e dependências
+
+O caminho de importação dos projetos é baseado na URL do repositório do código de cada projeto.
+
+	$ mkdir -p $GOPATH/src/github.com/usuario/projeto
+
+Dependências são _clonadas_ em seu respectivo caminho de importação.
+
+	$ go get github.com/hgfischer/go-otp
+	$ ls -l $GOPATH/src/github.com/hgfischer/go-otp
+
+.code dep.go
+
+
+* Programas
+
+Use `programa/main.go` como arquivo principal do seu programa, onde ficará a função `main`.
+
+O nome do diretório onde reside seu _package_ `main` será o nome do seu binário.
+
+Repositórios podem conter mais de um programa, em diferentes subdiretórios:
+
+	github.com/golang/tools
+		|- cmd 
+			|- benchcmp
+				|- main.go
+			|- callgraph
+				|- main.go
+			|- cover
+				|- main.go
+
+Ex.:
+
+	$ go get github.com/golang/tools/cmd/benchcmp
+	$ go get github.com/golang/tools/cmd/callgraph
+
+
+* Packages
+
+O nome do _package_ é importante. Por convenção:
+
+- mesmo nome do diretório onde está contido
+- caixa baixa
+- palavras simples
+- evitem _underscores_ ou _mixedCaps_
+- não se preocupem com _colisões_
+
+Não utilize o nome, ou partes do nome, do _package_ como prefixo para qualquer item exportado.
+
+Ex.: `bufio` tem um tipo chamado `Reader`, não `BufReader`, porque os usuários deste 
+_package_ o utilizam como `bufio.Reader`.
+
+
+* Licença e Documentação
+
+- licença do código + linha em branco
+- documentação principal do _package_ 
+- `package pacote`
+
+Use `pacote/pacote.go` como arquivo principal do _package_. Se tiver `init`, coloque aqui.
+
+.code pacote.go 
+
+
+* Documentação
+
+Use `pacote/doc.go` quando a documentação principal é extensa.
+
+.code doc.go 
+
+Como um melhor exemplo, veja o código do `net/http`.
+
+
+* Código
+
+- O compilador não se importa com a quantidade de arquivos de um _package_.
+- O que importa é o quanto faz sentido sua organização de arquivos.
+
+Como separar ou organizar o código de um _package_ em diferentes arquivos:
+
+- Muitas constantes pré-definidas? `consts.go`
+- Muitos `error`s pré-definidos? `errors.go`
+- Separe _structs_ e suas respectivas funções em arquivos com o mesmo nome. Ex.: `net/http.Client` fica em `net/http/client.go`. E seus respectivos testes em `client_test.go`.
+
+
+* Código dependente de plataforma
+
+O compilador pode utilizar diferentes versões de arquivos, dependendo do sistema operacional e/ou da arquitetura do hardware para o qual está compilando. A convenção segue: `*_GOOS.go`, `*_GOARCH.go`, ou `*_GOOS_GOARCH.go`.
+
+Exemplos do _package_ `syscall`:
+
+	syscall_bsd.go               syscall_bsd_test.go       syscall_darwin_386.go
+	syscall_darwin_amd64.go      syscall_darwin.go         syscall_dragonfly_386.go
+	syscall_dragonfly_amd64.go   syscall_dragonfly.go      syscall_freebsd_386.go
+	syscall_freebsd_amd64.go     syscall_freebsd_arm.go    syscall_freebsd.go
+	syscall_linux_386.go         syscall_linux_amd64.go    syscall_linux_arm.go
+	syscall_linux.go             syscall_nacl_386.go       syscall_nacl_amd64p32.go
+	syscall_nacl_arm.go          syscall_nacl.go           syscall_netbsd_386.go
+	syscall_netbsd_amd64.go      syscall_netbsd_arm.go     syscall_netbsd.go
+	syscall_no_getwd.go          syscall_openbsd_386.go    syscall_openbsd_amd64.go
+	syscall_openbsd.go           syscall_plan9.go          syscall_solaris_amd64.go
+	syscall_solaris.go           syscall_test.go           syscall_unix.go
+	syscall_unix_test.go         syscall_windows_386.go    syscall_windows_amd64.go
+	syscall_windows.go           syscall_windows_test.go
+
+
+* Build Tags
+
+Comentário que lista restrições de quando um arquivo será incluído no _package_.
+
+	// +build linux darwin
+	// +build 386 amd64,!cgo
+
+- `OR`: espaço
+- `AND`: vírgula ou comentário adicional
+- `NOT`: exclamação
+
+	(linux OR darwin) AND (386 OR (amd64 AND (NOT cgo)))
+
+
+* Build Tags
+
+Tags disponíveis:
+
+- Sistema Operacional, igual ao valor de GOOS
+- Arquitetura, igual ao valor de GOARCH
+- Compilador: `gc`, `gccgo`
+- `cgo` para quando CGO está ativado
+- Versão mínima do compilador: `go1.1`, `go1.2`, `go1.3`, `go1.4`, ...
+- `ignore` para ignorar o arquivo
+- Quais quer outras tags definidas com `go build -tags tag1,tag2,tag3`
+
+
+
+
+
+* Exemplos
+
+.play x.go 
+
+* Imagem
+.image imagem.jpg
+
+* Iframe
+.iframe http://hgfischer.org 
+
+* Link
+.link http://hgfischer.org meu site
+
+* HTML
+.html file.html
+
+* Caption
+.caption _Gopher_ da [[http://www.reneefrench.com][Renée French]]
+
+* Mais texto
+
+_itálico_
+*negrito*
+`programa`
+_tudo_isto_é_itálico_
+_Porque_utilizar__ptr_? Utilizar ***ptr* ao invés.
