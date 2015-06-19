@@ -283,7 +283,6 @@ Layout:
 			|- src/
 
 
-
 * Vendor em Go 1.5 (experimental)
 
 .link https://groups.google.com/forum/#!msg/golang-dev/74zjMON9glU/4lWCRDCRZg0J Vendor proposal
@@ -300,3 +299,27 @@ Layout:
 - Flag `-vendor` removida em Go 1.7
 - Nenhum _import_path_ deve conter _vendor_ 
 - Comentários `//import` serão ignorados em _packages_ vendorizados
+
+
+* GoMk
+
+.link https://github.com/hgfischer/gomk GoMk
+
+- Workflow para desenvolvimento com Makefile
+- Compatível com Godep (opcional)
+- `make` é ubíquo
+
+	include go.mk 
+	build: gomkbuild
+	run: build 
+		./$(APPBIN)	
+
+- _Targets_
+	$ make gomkhelp
+	Available go.mk targets:
+	| gomkhelp      | gomkbuild     | gomkxbuild    | gomkclean     | gomkupdate    
+	| vet           | lint          | fmt           | test          | bench         
+	| race          | deps          | cover         | present       | savegodeps    
+	| restoregodeps | updategodeps  | printvars     
+
+
