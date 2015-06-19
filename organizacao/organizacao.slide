@@ -2,23 +2,20 @@ Organização de Projetos em Go
 20 Jun 2015
 Tags: projetos, organização, go
 
-Herbert Fischer
-Senior Software Engineer, Globo.com
+*Herbert Fischer*
+_Globo.com_
 herbert.fischer@gmail.com
 http://hgfischer.org 
 @hgfischer
 
 * Conteúdo
 
-Convenções de como organizar:
-
 - Ambiente
 - Projetos e seus arquivos
-- Código e nomenclaturas
-
-E também:
-
+- Código
+- Nomenclaturas
 - Build Tags
+- Projetos Corporativos
 - Gestão de dependências
 - etc
 
@@ -28,7 +25,7 @@ E também:
 A convenção oficial é manter todos os projetos e suas dependências em um único GOPATH.
 
 
-	$ export GOPATH="~/go"
+	$ export GOPATH="~/Go"
 	$ export PATH="$GOPATH/bin:$PATH"
 
 
@@ -69,19 +66,18 @@ O nome do diretório onde reside seu _package_ `main` será o nome do seu binár
 
 Repositórios podem conter mais de um programa, em diferentes subdiretórios:
 
-	github.com/golang/tools
+	github.com/user/tools
 		|- cmd 
-			|- benchcmp
+			|- coffeemaker
 				|- main.go
-			|- callgraph
+			|- scratcher
 				|- main.go
-			|- cover
+			|- singer
 				|- main.go
 
-Ex.:
+Exemplo (multi-target):
 
-	$ go get github.com/golang/tools/cmd/benchcmp
-	$ go get github.com/golang/tools/cmd/callgraph
+	$ go get github.com/user/tools/cmd/...
 
 
 * Packages
@@ -90,9 +86,9 @@ O nome do _package_ é importante. Por convenção:
 
 - mesmo nome do diretório onde está contido
 - caixa baixa
-- palavras simples
-- evitem _underscores_ ou _mixedCaps_
-- não se preocupem com _colisões_
+- palavras simples (ex.: _guardachuva_ ao invés de _guarda__chuva_)
+- não usem _underscores_ ou _mixedCaps_
+- não se preocupem com _colisões_, pois podem ser resolvidos localmente
 
 Não utilize o nome, ou partes do nome, do _package_ como prefixo para qualquer item exportado.
 
@@ -117,7 +113,7 @@ Use `pacote/doc.go` quando a documentação principal é extensa.
 
 .code doc.go 
 
-Como um melhor exemplo, veja o código do `net/http`.
+.link http://golang.org/src/net/http/doc.go?s=1:1#L http://golang.org/src/net/http/doc.go?s=1:1#L
 
 
 * Organizando Código
@@ -132,16 +128,42 @@ Como separar ou organizar o código de um _package_ em diferentes arquivos:
 - Separe _structs_ e suas respectivas funções em arquivos com o mesmo nome. Ex.: `net/http.Client` fica em `net/http/client.go`. E seus respectivos testes em `client_test.go`.
 
 
+* Organizando Código em Packages
+
+Quando vale a pena agrupar código em packages?
+
+- Quando existem padrões conhecidos (MVC, Client/Server, Frontend/Backend, Handlers, Model, Config, Entities, etc)
+- Quando algo pode ser reaproveitado por outro Programa
+- _Packages_ são como singletons no escopo do Programas
+
+
+* Pacotes internos
+
+.link https://docs.google.com/document/d/1e8kOo3r51b2BWtTs_1uADIA5djfXhPT36s6eHVRIvaU/edit Internal packages
+
+	github.com/user/project/app/internal/handlers
+
+	... só pode ser importado por ...
+
+	github.com/user/project/app
+
+	... e não pode ser importado por ...
+
+	github.com/user/project/app/pkg
+
+	... ou por ...
+
+	github.com/user/programa 
+
+Disponível para todos no Go 1.5.
+
 * Convenções de Código
 
-- Ferramentas: `goimports`, `go`fmt`, `golint`
 - `MixedCaps` ou `mixedCaps`
 - Siglas são *siglas*: `UserID`, `siteURL`, `HTTPAddress`, `NewHTTPURL`
 - Nomes de interface como verbo, quando possível
 - _Getters_ sem _Get_ ou _get_: `user.Name()` ao invés de `user.GetName()`
-- Leia _Effective_Go_
-
-.link http://golang.org/doc/effective_go.html Effective Go
+- Use as ferramentas: `goimports`, `go`fmt`, `golint`.
 
 
 * Código dependente de plataforma
@@ -192,72 +214,89 @@ Tags disponíveis:
 - Quais quer outras tags definidas com `go`build`-tags`tag1,tag2,tag3`
 
 
-* Projetos corporativos
+* Desafios
 
-- Repositório fechado
-- Builds reproduzíveis
+- Projetos corporativos
+- Padrões corporativos e processos que não são compatíveis com as convenções.
+- Repositórios privado (_.gitconfig_)
 - Gestão de dependências
-
-* GOPATH dedicado
-
-	cd () {
-		builtin cd "$@"
-		cdir=$PWD
-		while [ "$cdir" != "/" ]; do
-			if [ -e "$cdir/.gopath" ]; then
-				export GOPATH=$cdir
-				break
-			fi
-			cdir=$(dirname "$cdir")
-		done
-	}
+- Builds reproduzíveis
 
 
 * Godep
 
-https://github.com/tools/godep
+.link https://github.com/tools/godep https://github.com/tools/godep
 
-* gb 
+	$ godep save
+	$ godep update
+	$ godep restore
 
-http://dave.cheney.net/2015/06/09/gb-a-project-based-build-tool-for-the-go-programming-language
+Arquivos:
 
-* Internal
+	Godeps/	
+		|- Godeps.json
+		|- _workspace
 
-https://docs.google.com/document/d/1e8kOo3r51b2BWtTs_1uADIA5djfXhPT36s6eHVRIvaU/edit
+Manipula GOPATH
 
-* Vendor em go1.5
-
-https://groups.google.com/forum/#!msg/golang-dev/74zjMON9glU/4lWCRDCRZg0J
+	$ godep go env
+	GOPATH="~/Go/src/github.com/user/programa/Godeps/_workspace:~/Go"
+	
 
 * gopkg.in
 
-http://labix.org/gopkg.in
+.link http://labix.org/gopkg.in gopkg.in 
+
+	gopkg.in/user/pkg.v3 → github.com/user/pkg (branch/tag v3, v3.N, ou v3.N.M)
+
+.link https://golang.org/doc/go1.4#canonicalimports Caminho canônico de importação
+
+	package pkg // import "gopkg.in/user/pkg.v3"
+
+.link http://semver.org/ Semantic Versioning
+
+	X.Y.Z → Major.Minor.Patch
+	Major → Incompatibilidade de API
+	Minor → Novas funcionalidades, sem quebrar compatibilidade
+	Patch → Correções de bugs, sem quebrar compatibilidade
+
+
+* gb
+
+- Projetos fechados, não `go`get`able
+- Idêntico a um `GOPATH` dentro de um projeto
+- Difícil de integrar com o ecossistema existente
+
+	$ gb build
+	$ gb vendor fetch github.com/user/pkg 
+	$ gb vendor update github.com/user/pkg
+	$ gb vendor delete github.com/user/pkg 
+	$ gb vendor list 
+
+Layout:
+
+	projeto/
+		|- bin/
+		|- pkg/
+		|- src/
+		|- vendor/
+			|- src/
 
 
 
-* Exemplos
+* Vendor em Go 1.5 (experimental)
 
-.play x.go 
+.link https://groups.google.com/forum/#!msg/golang-dev/74zjMON9glU/4lWCRDCRZg0J Vendor proposal
 
-* Imagem
-.image imagem.jpg
+	$ go get -vendor github.com/user/pkg 
 
-* Iframe
-.iframe http://hgfischer.org 
+	$GOPATH/src/github.com/user/projeto/
+		|- main.go
+		|- vendor/github.com/user/pkg/pkg.go
 
-* Link
-.link http://hgfischer.org meu site
+	import "github.com/user/pkg/pkg.go" → import "github.com/user/projeto/vendor/github.com/user/pkg"
 
-* HTML
-.html file.html
-
-* Caption
-.caption _Gopher_ da [[http://www.reneefrench.com][Renée French]]
-
-* Mais texto
-
-_itálico_
-*negrito*
-`programa`
-_tudo_isto_é_itálico_
-_Porque_utilizar__ptr_? Utilizar ***ptr* ao invés.
+- Flag `-vendor` habilitada por padrão em Go 1.6
+- Flag `-vendor` removida em Go 1.7
+- Nenhum _import_path_ deve conter _vendor_ 
+- Comentários `//import` serão ignorados em _packages_ vendorizados
