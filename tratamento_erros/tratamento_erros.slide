@@ -1,0 +1,120 @@
+Tratamento de Erros
+Jun 2015
+Tags: projetos, organização, go
+
+Herbert Fischer
+_Globo.com_
+herbert.fischer@gmail.com
+http://hgfischer.org 
+@hgfischer
+
+
+* error
+
+O que são? O que fazem? Onde vivem?
+
+	type error interface {
+		Error() string
+	}
+
+São variáveis que seguem uma interface padrão!
+
+
+* Package errors
+
+	package errors 
+
+	func New(string) error {}
+
+	type errorString struct{}
+
+	func (e *errorString) Error() string {}
+
+*Package*fmt*
+
+	fmt.Errorf(string, {}interface...) 
+
+	... equivale a ...
+
+	errors.New(fmt.Sprintf(...))
+
+
+* Type assertion
+
+.code type_assertion.go
+
+
+* Repetição
+
+.code repeated1.go
+
+
+* Repetição
+
+.image triple-face-palm.jpg
+
+
+* Repetição
+
+.code repeated2.go
+
+
+* Repetição
+
+	-rw-r--r-- 1 user group    221 Jun 18 23:17 repeated1.go
+	-rw-r--r-- 1 user group    221 Jun 18 23:21 repeated2.go
+
+.image triple-face-palm.jpg 390 500
+
+
+* Consertando
+
+.code repeated3.go
+
+
+* Win!!!!11???
+
+.image unnamed.gif
+
+Será?!
+
+	$ wc -l repeated?.go
+	16 repeated1.go
+	13 repeated2.go
+	13 repeated3.go
+
+	# ls -l repeated?.go
+	-rw-r--r-- 1 user group 221 Jun 18 23:17 repeated1.go
+	-rw-r--r-- 1 user group 221 Jun 18 23:26 repeated2.go
+	-rw-r--r-- 1 user group 255 Jun 18 23:31 repeated3.go
+
+
+* Outro caso
+
+.code bufio1.go 
+
+.code bufio2.go
+
+
+* Como reduzir a repetição?
+
+- Reduzir padrões de chamada de função e validação (`repeated3.go`)
+- Encapsular a repetição num _package_ e publicar uma interface amigável (bufio)
+
+
+* O que fazer com o erro?
+
+- A função pode se recuperar desta condição de erro? 
+- O erro é temporário?
+- O erro é fatal?
+
+
+* Convenções e dicas 
+
+- Trate primeiro
+- Defina tipos de erros com sufixo `Error`. Ex.: `ParseError`, `NetError`, `IOError`, etc.
+- Variáveis de erros pré-definidas, devem ter o prefixo `Err`. Exemplos: ErrBadAction, ErrEOF, etc
+- Tipos de erros podem encapsular outras informações e comportamentos
+
+
+* Dúvidas? Perguntas?

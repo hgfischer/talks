@@ -1,8 +1,8 @@
 Organização de Projetos em Go
-20 Jun 2015
+Jun 2015
 Tags: projetos, organização, go
 
-*Herbert Fischer*
+Herbert Fischer
 _Globo.com_
 herbert.fischer@gmail.com
 http://hgfischer.org 
@@ -323,3 +323,4 @@ Layout:
 	| restoregodeps | updategodeps  | printvars     
 
 
+* Dúvidas? Perguntas?
