@@ -176,7 +176,7 @@ cover: $(COVER)
 
 .PHONY: present
 present: $(PRESENT)
-	@present
+	@present -orighost="localhost"
 
 ##########################################################################################
 ## Godep support

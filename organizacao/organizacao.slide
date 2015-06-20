@@ -26,7 +26,8 @@ A convenção oficial é manter todos os projetos e suas dependências em um ún
 
 
 	$ export GOPATH="~/Go"
-	$ export PATH="$GOPATH/bin:$PATH"
+	$ export GOBIN="$GOPATH/bin"
+	$ export PATH="$GOBIN:$PATH"
 
 
 Utilize `go`env` para exibir como está a configuração do seu ambiente corrente.
@@ -60,7 +61,7 @@ Dependências são _clonadas_ em seu respectivo caminho de importação.
 
 * Programas
 
-Use `programa/main.go` como arquivo principal do seu programa, onde ficará a função `main`.
+Use `programa/main.go` ou `programa/programa.go` como arquivo principal do seu programa, onde ficará a função `main`.
 
 O nome do diretório onde reside seu _package_ `main` será o nome do seu binário.
 
@@ -84,41 +85,45 @@ Exemplo (multi-target):
 
 O nome do _package_ é importante. Por convenção:
 
-- mesmo nome do diretório onde está contido
 - caixa baixa
-- palavras simples (ex.: _guardachuva_ ao invés de _guarda__chuva_)
-- não usem _underscores_ ou _mixedCaps_
+- não usem _underscores_ ou _mixedCaps_ (ex.: _guardachuva_ ao invés de _guarda__chuva_)
+- palavras simples
 - não se preocupem com _colisões_, pois podem ser resolvidos localmente
 
-Não utilize o nome, ou partes do nome, do _package_ como prefixo para qualquer item exportado.
+	import (
+	        mongo "github.com/user/libs/mongodb/db
+	        mysql "github.com/user/libs/mysql/db"  	
+	)
 
-Ex.: `bufio` tem um tipo chamado `Reader`, não `BufReader`, porque os usuários deste 
-_package_ o utilizam como `bufio.Reader`.
 
+* Packages
 
-* Licença e Documentação
+Não utilize o nome, ou partes do nome, do _package_ como prefixo para qualquer item exportado. 
 
-- licença do código + linha em branco
-- documentação principal do _package_ 
-- `package pacote`
+Ex.: `bufio` tem um tipo chamado `Reader`, não `BufReader`, porque os usuários deste _package_ o utilizam como `bufio.Reader`.
 
 Use `pacote/pacote.go` como arquivo principal do _package_. Se tiver `init`, coloque aqui.
 
 .code pacote.go 
 
 
-* Documentação
+* Licença e Documentação
 
-Use `pacote/doc.go` quando a documentação principal é extensa.
+	1) licença do código + linha em branco
+	2) documentação introdutória do _package_ 
+	3) `package pacote`
+
+Use `pacote/doc.go` quando a documentação introdutória é extensa.
 
 .code doc.go 
 
-.link http://golang.org/src/net/http/doc.go?s=1:1#L http://golang.org/src/net/http/doc.go?s=1:1#L
+.link http://blog.golang.org/godoc-documenting-go-code
 
 
 * Organizando Código
 
 - O compilador não se importa com a quantidade de arquivos de um _package_.
+- O número de arquivos em um _package_ é um sinal de que está na hora de separar.
 - O que importa é o quanto faz sentido sua organização de arquivos.
 
 Como separar ou organizar o código de um _package_ em diferentes arquivos:
@@ -133,8 +138,10 @@ Como separar ou organizar o código de um _package_ em diferentes arquivos:
 Quando vale a pena agrupar código em packages?
 
 - Quando existem padrões conhecidos (MVC, Client/Server, Frontend/Backend, Handlers, Model, Config, Entities, etc)
-- Quando algo pode ser reaproveitado por outro Programa
-- _Packages_ são como singletons no escopo do Programas
+
+- Quando algo pode ser reaproveitado em outro _Package_ 
+
+- Não misturar arquivos que não são processados pelo compilador Go com outros arquivos. Dentro de um _package_ não se deve colocar arquivos que serão lidos pelo programa compilado ou arquivos acessórios.
 
 
 * Pacotes internos
@@ -161,9 +168,8 @@ Disponível para todos no Go 1.5.
 
 - `MixedCaps` ou `mixedCaps`
 - Siglas são *siglas*: `UserID`, `siteURL`, `HTTPAddress`, `NewHTTPURL`
-- Nomes de interface como verbo, quando possível
 - _Getters_ sem _Get_ ou _get_: `user.Name()` ao invés de `user.GetName()`
-- Use as ferramentas: `goimports`, `go`fmt`, `golint`.
+- Use as ferramentas: `gofmt` (ou `goimports`), `golint`.
 
 
 * Código dependente de plataforma
@@ -194,9 +200,10 @@ Comentário que lista restrições de quando um arquivo será incluído no _pack
 	// +build linux darwin
 	// +build 386 amd64,!cgo
 
-- `OR`: espaço
-- `AND`: vírgula ou comentário adicional
-- `NOT`: exclamação
+- espaço: *OR*
+- vírgula: *AND*
+- linhas adicionais `//`+build`: *AND*
+- exclamação: *NOT*
 
 	(linux OR darwin) AND (386 OR (amd64 AND (NOT cgo)))
 
@@ -214,18 +221,9 @@ Tags disponíveis:
 - Quais quer outras tags definidas com `go`build`-tags`tag1,tag2,tag3`
 
 
-* Desafios
-
-- Projetos corporativos
-- Padrões corporativos e processos que não são compatíveis com as convenções.
-- Repositórios privado (_.gitconfig_)
-- Gestão de dependências
-- Builds reproduzíveis
-
-
 * Godep
 
-.link https://github.com/tools/godep https://github.com/tools/godep
+.link https://github.com/tools/godep 
 
 	$ godep save
 	$ godep update
@@ -242,6 +240,8 @@ Manipula GOPATH
 	$ godep go env
 	GOPATH="~/Go/src/github.com/user/programa/Godeps/_workspace:~/Go"
 	
+Remove arquivos de controle de versão das dependências (`.git`)
+
 
 * gopkg.in
 
@@ -249,16 +249,16 @@ Manipula GOPATH
 
 	gopkg.in/user/pkg.v3 → github.com/user/pkg (branch/tag v3, v3.N, ou v3.N.M)
 
-.link https://golang.org/doc/go1.4#canonicalimports Caminho canônico de importação
-
-	package pkg // import "gopkg.in/user/pkg.v3"
-
-.link http://semver.org/ Semantic Versioning
+.link http://semver.org
 
 	X.Y.Z → Major.Minor.Patch
 	Major → Incompatibilidade de API
 	Minor → Novas funcionalidades, sem quebrar compatibilidade
 	Patch → Correções de bugs, sem quebrar compatibilidade
+
+.link https://golang.org/doc/go1.4#canonicalimports
+
+	package pkg // import "gopkg.in/user/pkg.v3"
 
 
 * gb
@@ -267,20 +267,20 @@ Manipula GOPATH
 - Idêntico a um `GOPATH` dentro de um projeto
 - Difícil de integrar com o ecossistema existente
 
+	projeto/
+		|- bin/
+		|- pkg/
+		|- src/main.go
+		|- vendor/
+			|- src/github.com/usr/pkg
+
+Comandos:
+
 	$ gb build
 	$ gb vendor fetch github.com/user/pkg 
 	$ gb vendor update github.com/user/pkg
 	$ gb vendor delete github.com/user/pkg 
 	$ gb vendor list 
-
-Layout:
-
-	projeto/
-		|- bin/
-		|- pkg/
-		|- src/
-		|- vendor/
-			|- src/
 
 
 * Vendor em Go 1.5 (experimental)
@@ -303,7 +303,7 @@ Layout:
 
 * GoMk
 
-.link https://github.com/hgfischer/gomk GoMk
+.link https://github.com/hgfischer/gomk 
 
 - Workflow para desenvolvimento com Makefile
 - Compatível com Godep (opcional)
