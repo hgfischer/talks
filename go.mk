@@ -34,7 +34,27 @@ COVERAGETMP := coverage.tmp
 GODEPPATH   := $(PWD)/Godeps/_workspace
 LOCALGOPATH := $(GODEPPATH):$(GOPATH)
 ORIGGOPATH  := $(GOPATH)
-GOMKVERSION := 0.7.4
+GOMKVERSION := 0.8.1
+
+# Check GOPATH
+ifndef GOPATH
+$(error ERROR!! GOPATH must be declared. Check [http://golang.org/doc/code.html#GOPATH])
+endif
+
+# Check GOBIN, and automatically export it
+ifndef GOBIN
+export GOBIN=$(GOPATH)/bin
+GOBIN := $(GOBIN)
+endif
+
+# Include GODEPPATH
+export GOPATH=$(LOCALGOPATH)
+
+# Check current path
+ifeq ($(shell go list ./... 2>/dev/null | grep -q '^_'; echo $$?), 0)
+$(error ERROR!! This directory should be at $(GOPATH)/src/$(REPO)]
+endif
+
 
 .PHONY: gomkhelp
 gomkhelp:
@@ -60,20 +80,6 @@ gomkhelp:
 	@exit 0
 
 
-ifndef GOPATH
-$(error ERROR!! GOPATH must be declared. Check [http://golang.org/doc/code.html#GOPATH])
-else
-export GOPATH=$(LOCALGOPATH)
-endif
-
-ifndef GOBIN
-export GOBIN := $(GOPATH)/bin
-endif
-
-ifeq ($(shell go list ./... 2>/dev/null | grep -q '^_'; echo $$?), 0)
-$(error ERROR!! This directory should be at $(GOPATH)/src/$(REPO)]
-endif
-
 ##########################################################################################
 ## Project targets
 ##########################################################################################
@@ -85,10 +91,13 @@ $(APPBIN): gomkbuild
 ##########################################################################################
 
 .PHONY: gomkbuild
-gomkbuild:  $(GOSOURCES) ; @go build
+gomkbuild: $(GOSOURCES) ; @go build
 
 .PHONY: gomkxbuild
 gomkxbuild: ; $(GOX)
+
+.PHONY: gomkenv
+gomkenv: ; @go env
 
 .PHONY: gomkclean
 gomkclean:
@@ -98,7 +107,7 @@ gomkclean:
 
 .PHONY: gomkupdate
 gomkupdate:
-	@wget --no-cache -O go.mk https://raw.githubusercontent.com/hgfischer/gomk/master/go.mk?$(shell date +%s)
+	@curl -o go.mk https://raw.githubusercontent.com/hgfischer/gomk/master/go.mk?$(shell date +%s)
 
 ##########################################################################################
 ## Go tools
@@ -168,15 +177,17 @@ deps: ; @GOPATH=$(ORIGGOPATH) go get -u -v -t ./...
 cover: $(COVER)
 	@echo 'mode: set' > $(COVERAGEOUT)
 	@for pkg in $(GOPKGS); do \
-		go test -v -coverprofile=$(COVERAGETMP) $$pkg || exit 1; \
-		grep -v 'mode: set' $(COVERAGETMP) >> $(COVERAGEOUT); \
-		rm $(COVERAGETMP); \
+		go test -v -coverprofile=$(COVERAGETMP) $$pkg; \
+		if [ -f $(COVERAGETMP) ]; then \
+			grep -v 'mode: set' $(COVERAGETMP) >> $(COVERAGEOUT); \
+			rm $(COVERAGETMP); \
+		fi; \
 	done
 	@go tool cover -html=$(COVERAGEOUT)
 
 .PHONY: present
 present: $(PRESENT)
-	@present -orighost="localhost"
+	@present
 
 ##########################################################################################
 ## Godep support
